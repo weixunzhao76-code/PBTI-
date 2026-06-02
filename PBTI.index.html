@@ -1,0 +1,834 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>PBTI - Power Based Type Indicator</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+}
+
+body{
+background:#070707;
+color:white;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+overflow-x:hidden;
+}
+
+body::before{
+content:"";
+position:fixed;
+inset:0;
+background:
+radial-gradient(circle at top,#4a3900 0%,transparent 35%),
+radial-gradient(circle at bottom,#1a1a1a 0%,transparent 40%);
+z-index:-1;
+}
+
+.gold{
+color:#d4af37;
+}
+
+.gold-bg{
+background:#d4af37;
+}
+
+.card{
+background:rgba(255,255,255,.03);
+border:1px solid rgba(212,175,55,.15);
+backdrop-filter:blur(10px);
+}
+
+.option{
+transition:.25s;
+cursor:pointer;
+}
+
+.option:hover{
+border-color:#d4af37;
+transform:translateY(-2px);
+}
+
+.fade{
+animation:fade .4s ease;
+}
+
+@keyframes fade{
+from{
+opacity:0;
+transform:translateY(20px);
+}
+to{
+opacity:1;
+transform:none;
+}
+}
+
+.glow{
+text-shadow:
+0 0 10px rgba(212,175,55,.5),
+0 0 20px rgba(212,175,55,.3);
+}
+</style>
+</head>
+
+<body>
+
+<div id="app">
+
+<!-- 首页 -->
+
+<section
+id="home"
+class="min-h-screen flex flex-col justify-center items-center text-center px-6">
+
+<div class="max-w-3xl">
+
+<div class="text-sm tracking-[8px] text-gray-500 mb-6">
+POWER ANALYSIS SYSTEM
+</div>
+
+<h1 class="text-7xl md:text-8xl font-black gold glow">
+PBTI
+</h1>
+
+<h2 class="text-2xl md:text-3xl mt-6">
+Power Based Type Indicator
+</h2>
+
+<p class="text-gray-400 mt-8 leading-8">
+你的权力风格决定你的影响力边界。
+<br>
+16种人格，16种统治方式。
+</p>
+
+<button
+onclick="startTest()"
+class="mt-12 px-10 py-4 rounded-xl gold-bg text-black font-bold hover:scale-105 transition">
+开始测试
+</button>
+
+</div>
+
+</section>
+
+<!-- 答题页 -->
+
+<section
+id="test"
+class="hidden min-h-screen flex items-center justify-center px-6">
+
+<div class="max-w-4xl w-full">
+
+<div class="mb-10">
+
+<div
+id="progressText"
+class="gold text-sm tracking-widest mb-3">
+问题 1 / 16
+</div>
+
+<div class="w-full h-2 bg-gray-800 rounded-full">
+
+<div
+id="progressBar"
+class="h-2 rounded-full bg-yellow-500"
+style="width:0%">
+</div>
+
+</div>
+
+</div>
+
+<div class="card rounded-3xl p-8 md:p-12">
+
+<h2
+id="question"
+class="text-3xl md:text-4xl font-bold mb-10 leading-relaxed">
+问题
+</h2>
+
+<div class="grid gap-5">
+
+<button
+id="optionA"
+class="option card rounded-2xl p-6 text-left">
+A
+</button>
+
+<button
+id="optionB"
+class="option card rounded-2xl p-6 text-left">
+B
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<!-- 分析 -->
+
+<section
+id="loading"
+class="hidden min-h-screen flex flex-col items-center justify-center">
+
+<div class="text-center">
+
+<div class="gold text-6xl mb-8">
+⚜
+</div>
+
+<h2 class="text-3xl mb-6">
+正在分析你的权力结构...
+</h2>
+
+<div
+id="loadingText"
+class="text-gray-400">
+构建人格模型
+</div>
+
+</div>
+
+</section>
+
+<!-- 结果 -->
+
+<section
+id="result"
+class="hidden min-h-screen px-6 py-20">
+
+<div class="max-w-6xl mx-auto">
+
+<div class="text-center mb-12">
+
+<div
+id="typeCode"
+class="text-7xl font-black gold glow">
+CHDR
+</div>
+
+<div
+id="typeName"
+class="text-4xl mt-4">
+战略家
+</div>
+
+<div
+id="typeTitle"
+class="text-gray-400 mt-2 tracking-widest">
+THE STRATEGIST
+</div>
+
+<img
+id="typeImage"
+class="mx-auto mt-8 rounded-3xl shadow-2xl max-w-3xl w-full md:w-4/5 object-cover"
+src="Image/CHDR.pic.png"
+alt="类型图像" />
+
+</div>
+
+<div class="grid lg:grid-cols-2 gap-8">
+
+<div class="card rounded-3xl p-8">
+
+<canvas id="radar"></canvas>
+
+</div>
+
+<div class="card rounded-3xl p-8">
+
+<h3 class="gold text-2xl mb-4">
+人格分析
+</h3>
+
+<p
+id="description"
+class="leading-8 text-gray-300">
+描述
+</p>
+
+<h3 class="gold text-xl mt-8 mb-3">
+核心动机
+</h3>
+
+<p
+id="motivation"
+class="leading-8 text-gray-300">
+动机
+</p>
+
+<h3 class="gold text-xl mt-8 mb-3">
+核心恐惧
+</h3>
+
+<p
+id="fear"
+class="leading-8 text-gray-300">
+恐惧
+</p>
+
+<h3 class="gold text-xl mt-8 mb-3">
+典型人物
+</h3>
+
+<ul
+id="examples"
+class="space-y-2 text-gray-300">
+</ul>
+
+</div>
+
+</div>
+
+<div class="mt-12 text-center">
+  <h3 class="gold text-2xl mb-6">综合图示</h3>
+  <img
+    class="mx-auto rounded-3xl shadow-2xl max-w-5xl w-full object-contain"
+    src="Image/总图.png"
+    alt="总图" />
+</div>
+
+</section>
+
+</div>
+
+<script>
+
+const questions = [
+
+{
+dimension:"power",
+question:"刚进入一家新公司，你最优先做什么？",
+a:"提升专业能力",
+b:"认识关键人物"
+},
+
+{
+dimension:"power",
+question:"升职失败后，你第一反应是？",
+a:"能力不足",
+b:"没人支持"
+},
+
+{
+dimension:"power",
+question:"团队出现问题时，你更相信？",
+a:"最专业的人",
+b:"最有影响力的人"
+},
+
+{
+dimension:"power",
+question:"如果只能拥有一种资源？",
+a:"顶尖能力",
+b:"顶级人脉"
+},
+
+{
+dimension:"control",
+question:"有人公开挑战你的决定？",
+a:"私下沟通",
+b:"立即回应"
+},
+
+{
+dimension:"control",
+question:"成员持续低效？",
+a:"了解原因",
+b:"直接警告"
+},
+
+{
+dimension:"control",
+question:"你更认同？",
+a:"尊重来自信任",
+b:"尊重来自力量"
+},
+
+{
+dimension:"control",
+question:"发生冲突时？",
+a:"关系最重要",
+b:"赢最重要"
+},
+
+{
+dimension:"resource",
+question:"获得额外资金？",
+a:"投入新机会",
+b:"存下来"
+},
+
+{
+dimension:"resource",
+question:"拥有独家资源？",
+a:"交换合作",
+b:"保持控制"
+},
+
+{
+dimension:"resource",
+question:"朋友借重要资源？",
+a:"乐于共享",
+b:"谨慎考虑"
+},
+
+{
+dimension:"resource",
+question:"财富本质是？",
+a:"增长工具",
+b:"安全感"
+},
+
+{
+dimension:"risk",
+question:"50%成功率的新项目？",
+a:"参与",
+b:"放弃"
+},
+
+{
+dimension:"risk",
+question:"稳定工作与创业机会？",
+a:"创业",
+b:"稳定工作"
+},
+
+{
+dimension:"risk",
+question:"重大决策时？",
+a:"快速行动",
+b:"等待更多信息"
+},
+
+{
+dimension:"risk",
+question:"你更害怕什么？",
+a:"错失机会",
+b:"遭受损失"
+}
+
+];
+const types = {
+
+ASDP:{
+name:"建设者",
+title:"THE BUILDER",
+desc:"你是这个浮躁时代最珍贵的 \"地基型\" 人才。所有人都在追逐风口的时候，你在默默打地基；所有人都在画饼的时候，你在一块砖一块瓦地盖房子。你可能不是最快的，但一定是最稳的；你可能不是最耀眼的，但一定是最值得托付的。只要有你在，所有人都会感到安心。",
+motivation:"构建一个完全由自己掌控、稳固可靠、能持续产生价值的系统，用实实在在的成果证明自己的价值。",
+fear:"自己付出的一切努力被轻易推翻，建立的体系因为意外而崩塌，被别人贴上 \"不靠谱\" 的标签。",
+examples:["任正非（华为）","王传福（比亚迪）","稻盛和夫（京瓷）"]
+},
+
+ASDR:{
+name:"开拓者",
+title:"THE PIONEER",
+desc:"你是天生的破局者。当所有人都在既定的轨道上循规蹈矩时，你是第一个敢跳出轨道、去探索未知荒野的人。你不怕失败，因为对你来说，最大的失败从来不是跌倒，而是从未出发。世界因为有你这样的人，才会不断向前。",
+motivation:"探索世界上所有的可能性，体验不同的人生，不断突破自己和现有世界的边界。",
+fear:"被困在一成不变的生活里，重复枯燥的日子，被时代和同龄人甩在身后。",
+examples:["埃隆・马斯克（特斯拉 / SpaceX）","贝佐斯（亚马逊）","徐霞客"]
+},
+
+ASKP:{
+name:"学者",
+title:"THE SCHOLAR",
+desc:"你是真正的 \"真理追求者\"。在这个人人都急于发表观点的时代，你愿意沉下心来，花几年甚至几十年的时间去研究一个问题。你不相信权威，只相信逻辑和证据；你不追求虚名，只追求对世界的深刻理解。你的专业能力，就是你最硬的底气。",
+motivation:"搞清楚万事万物的底层规律，获得绝对的知识和专业能力，成为自己领域里不可替代的专家。",
+fear:"自己的认知是错误的，被别人在专业上超越，显得无知和愚蠢。",
+examples:["爱因斯坦","屠呦呦","钱钟书"]
+},
+
+ASKR:{
+name:"远见者",
+title:"THE VISIONARY",
+desc:"你是那个能看到未来的人。当所有人都只看到眼前的一亩三分地时，你已经看到了十年、二十年后的世界。你不仅能看到未来，还能用你的热情和感染力，让别人也相信那个未来，并愿意和你一起去实现它。你是天生的造梦师。",
+motivation:"创造一个前所未有的新事物，实现一个伟大的理想，在人类历史上留下自己的印记。",
+fear:"自己的理想被现实磨灭，一辈子碌碌无为，没有做出任何有意义的事情。",
+examples:["乔布斯（苹果）","马丁・路德・金","梵高"]
+},
+
+AHDP:{
+name:"架构师",
+title:"THE ARCHITECT",
+desc:"你是天生的 \"系统设计师\"。别人看到的是一个个孤立的问题，你看到的是整个系统的运行逻辑。你不满足于解决表面问题，而是喜欢从根源上重新设计整个系统，让它变得更高效、更完美。你的大脑，就是最精密的蓝图。",
+motivation:"设计出完美的系统和规则，让一切都按照自己的规划有序运转，掌控全局。",
+fear:"系统失控，出现自己无法预料的混乱，自己的规划被别人随意打乱。",
+examples:["邓小平（改革开放总设计师）","彼得・德鲁克（管理学之父）","张小龙（微信）"]
+},
+
+AHDR:{
+name:"军阀",
+title:"THE WARLORD",
+desc:"你是天生的 \"行动派\"。当别人还在犹豫要不要做的时候，你已经冲出去把事情做完了。你喜欢竞争，享受征服的快感，面对机会从不犹豫，永远主动出击。你是那种能把别人口中的 \"不可能\" 变成 \"我做到了\" 的人。",
+motivation:"不断扩张自己的领地和影响力，战胜所有对手，成为领域内的最强者。",
+fear:"被别人打败，失去自己已经拥有的一切，被时代无情淘汰。",
+examples:["成吉思汗","孙宏斌（融创）","项羽"]
+},
+
+AHKP:{
+name:"指挥官",
+title:"THE COMMANDER",
+desc:"你是团队里最可靠的 \"掌舵人\"。你有强烈的责任感和使命感，总是把团队的利益放在第一位。你喜欢明确的规则和秩序，能带领团队在混乱中找到方向，稳步前进。跟着你干，大家心里都踏实。",
+motivation:"建立一个稳定、有序、高效的组织，带领团队完成目标，获得大家的尊重和信任。",
+fear:"秩序被破坏，团队出现混乱，自己辜负了大家的信任。",
+examples:["朱德","艾森豪威尔","董明珠（格力）"]
+},
+
+AHKR:{
+name:"征服者",
+title:"THE CONQUEROR",
+desc:"你是天生的 \"赢家\"。对你来说，人生就是一场游戏，而你的目标从来不是参与，而是赢得最终的胜利。你有强烈的野心和不服输的精神，为了目标可以付出一切。你的身上，有一种让人信服的王者气场。",
+motivation:"获得最高的权力和地位，成为游戏规则的制定者，让所有人都认可自己的实力。",
+fear:"失败，被别人看不起，成为一个平庸的人。",
+examples:["凯撒大帝","拿破仑","马云（阿里巴巴）"]
+},
+
+CSDP:{
+name:"管家",
+title:"THE STEWARD",
+desc:"你是团队里的 \"定海神针\"。别人都在往前冲的时候，你在默默守护着后方。你细心、负责、有耐心，能把所有琐碎的事情都处理得井井有条，让整个团队没有后顾之忧。有你在的地方，就有温暖和安稳。",
+motivation:"维护现有的秩序和关系网络，让身边的人都能过得幸福安稳，获得大家的依赖和认可。",
+fear:"出现意外和混乱，自己无法照顾好身边的人，被别人认为 \"没用\"。",
+examples:["周恩来","宋庆龄","董建华"]
+},
+
+CSDR:{
+name:"掮客",
+title:"THE BROKER",
+desc:"你是天生的 \"价值发现者\"。你有一双火眼金睛，总能看到别人看不到的联系和可能性。你擅长把不同的人、不同的资源连接在一起，创造出意想不到的价值。这个世界上没有你牵不成的线，没有你搭不成的桥。",
+motivation:"发现并抓住所有的商业机会，通过整合资源创造财富和价值，成为信息和资源的枢纽。",
+fear:"错过机会，被别人抢先一步，失去自己的人脉和资源。",
+examples:["吕不韦","胡雪岩","沈南鹏（红杉资本）"]
+},
+
+CSKP:{
+name:"调停者",
+title:"THE MEDIATOR",
+desc:"你是天生的 \"和平使者\"。你有一颗善良、柔软的心，总能感受到别人的情绪和需求。你不喜欢冲突，总是愿意站在中间，帮助大家化解矛盾，达成共识。你的存在，让这个世界变得更加温柔。",
+motivation:"创造一个和谐、友好的环境，让所有人都能和平相处，获得大家的喜爱和欢迎。",
+fear:"冲突和争吵，被别人讨厌，人际关系破裂。",
+examples:["甘地","特蕾莎修女","何炅"]
+},
+
+CSKR:{
+name:"外交家",
+title:"THE DIPLOMAT",
+desc:"你是天生的 \"社交艺术家\"。你有迷人的人格魅力和出色的沟通能力，无论走到哪里都能成为焦点。你擅长和不同的人打交道，能轻松地建立起广泛的人脉网络。只要你想，没有你搞不定的人。",
+motivation:"获得别人的喜爱和认可，通过自己的魅力和影响力去影响别人，建立强大的联盟。",
+fear:"被别人孤立，失去自己的魅力和影响力，没有人愿意和自己做朋友。",
+examples:["基辛格","汪涵","周恩来（外交领域）"]
+},
+
+CHDP:{
+name:"宰相",
+title:"THE CHANCELLOR",
+desc:"你是真正的 \"幕后英雄\"。你不喜欢站在聚光灯下，更喜欢在幕后默默掌控全局。你擅长管理复杂的系统，合理配置资源，是真正推动事情向前发展的人。很多人不知道你的名字，但所有人都在享受你创造的成果。",
+motivation:"掌控复杂系统的运行，让整个组织高效运转，实现自己的政治理想和抱负。",
+fear:"失去对系统的掌控，自己的努力被别人窃取，被别人低估和忽视。",
+examples:["诸葛亮","萧何","张居正"]
+},
+
+CHDR:{
+name:"战略家",
+title:"THE STRATEGIST",
+desc:"你是天生的 \"下棋高手\"。别人看到的是一步棋，你看到的是整个棋局。你擅长观察利益结构，提前布局未来，总能在别人还没反应过来的时候，就已经占尽了先机。和你作对的人，往往连怎么输的都不知道。",
+motivation:"看透事物的本质和规律，制定完美的战略，在竞争中获得最终的胜利。",
+fear:"自己的战略失误，被别人算计，输掉整个棋局。",
+examples:["孙子","毛泽东","索罗斯"]
+},
+
+CHKP:{
+name:"摄政王",
+title:"THE REGENT",
+desc:"你是天生的 \"实权派\"。你不在乎虚名，只在乎真正的控制权。你稳重、可靠、有耐心，能在混乱中保持冷静，带领团队度过难关。你可能不是那个站在台上讲话的人，但你一定是那个真正说了算的人。",
+motivation:"掌握真正的权力和资源，建立一个稳定、强大的组织，保护自己和身边的人。",
+fear:"失去权力和资源，被别人架空，无法保护自己在乎的人。",
+examples:["多尔衮","孝庄太后","任正非（后期）"]
+},
+
+CHKR:{
+name:"造王者",
+title:"THE KINGMAKER",
+desc:"你是真正的 \"权力游戏大师\"。你深谙人性和权力的运作规则，你未必想自己当国王，但你能决定谁能成为国王。你擅长培养人才，建立联盟，是真正的幕后操盘手。你的眼光和手腕，足以改变历史的走向。",
+motivation:"掌控权力的游戏规则，通过影响和培养别人来实现自己的意志，成为真正的幕后主宰。",
+fear:"被自己培养的人背叛，卷入权力斗争的漩涡，最终身败名裂。",
+examples:["司马懿","杜月笙","吕不韦（后期）"]
+}
+
+};
+
+let currentQuestion = 0;
+
+const scores = {
+power:0,
+control:0,
+resource:0,
+risk:0
+};
+
+function startTest(){
+
+document.getElementById("home").classList.add("hidden");
+document.getElementById("test").classList.remove("hidden");
+
+renderQuestion();
+
+}
+
+function renderQuestion(){
+
+const q = questions[currentQuestion];
+
+document.getElementById("progressText").innerText =
+`问题 ${currentQuestion+1} / ${questions.length}`;
+
+document.getElementById("progressBar").style.width =
+`${((currentQuestion+1)/questions.length)*100}%`;
+
+document.getElementById("question").innerText =
+q.question;
+
+document.getElementById("optionA").innerText =
+"A. " + q.a;
+
+document.getElementById("optionB").innerText =
+"B. " + q.b;
+
+document.getElementById("optionA").onclick =
+()=>answer(q.dimension,false);
+
+document.getElementById("optionB").onclick =
+()=>answer(q.dimension,true);
+
+}
+
+function answer(dimension,isB){
+
+if(isB){
+scores[dimension]++;
+}
+
+currentQuestion++;
+
+if(currentQuestion < questions.length){
+
+renderQuestion();
+
+}else{
+
+showLoading();
+
+}
+
+}
+
+function showLoading(){
+
+document.getElementById("test").classList.add("hidden");
+document.getElementById("loading").classList.remove("hidden");
+
+const texts = [
+"构建人格模型...",
+"分析权力结构...",
+"计算联盟倾向...",
+"评估风险偏好...",
+"匹配最终人格..."
+];
+
+let i=0;
+
+const timer = setInterval(()=>{
+
+document.getElementById("loadingText").innerText =
+texts[i];
+
+i++;
+
+if(i>=texts.length){
+
+clearInterval(timer);
+
+setTimeout(showResult,500);
+
+}
+
+},600);
+
+}
+function showResult(){
+
+document.getElementById("loading").classList.add("hidden");
+document.getElementById("result").classList.remove("hidden");
+
+const power =
+scores.power >= 2 ? "C" : "A";
+
+const control =
+scores.control >= 2 ? "H" : "S";
+
+const resource =
+scores.resource >= 2 ? "K" : "D";
+
+const risk =
+scores.risk >= 2 ? "P" : "R";
+
+const code =
+power +
+control +
+resource +
+risk;
+
+const type = types[code];
+
+document.getElementById("typeCode").innerText =
+code;
+
+document.getElementById("typeName").innerText =
+type.name;
+
+document.getElementById("typeTitle").innerText =
+type.title;
+
+document.getElementById("description").innerText =
+type.desc;
+
+document.getElementById("motivation").innerText =
+type.motivation;
+
+document.getElementById("fear").innerText =
+type.fear;
+
+document.getElementById("examples").innerHTML =
+type.examples.map(item =>
+`<li class="mb-2">• ${item}</li>`
+).join("");
+
+document.getElementById("typeImage").src =
+`Image/${code}.pic.png`;
+
+document.getElementById("typeImage").alt =
+`${type.name} 图像`;
+
+drawRadar();
+
+}
+
+function drawRadar(){
+
+const canvas =
+document.getElementById("radar");
+
+new Chart(canvas,{
+
+type:"radar",
+
+data:{
+
+labels:[
+"联盟倾向",
+"强硬控制",
+"资源掌控",
+"风险偏好"
+],
+
+datasets:[{
+
+label:"PBTI",
+
+data:[
+
+scores.power * 25,
+
+scores.control * 25,
+
+scores.resource * 25,
+
+scores.risk * 25
+
+],
+
+fill:true,
+
+backgroundColor:
+"rgba(212,175,55,.25)",
+
+borderColor:
+"#d4af37",
+
+pointBackgroundColor:
+"#d4af37",
+
+pointBorderColor:
+"#d4af37",
+
+pointRadius:4
+
+}]
+
+},
+
+options:{
+
+responsive:true,
+
+plugins:{
+
+legend:{
+display:false
+}
+
+},
+
+scales:{
+
+r:{
+
+min:0,
+
+max:100,
+
+ticks:{
+display:false
+},
+
+grid:{
+color:"rgba(255,255,255,.08)"
+},
+
+angleLines:{
+color:"rgba(255,255,255,.08)"
+},
+
+pointLabels:{
+color:"#ffffff",
+font:{
+size:14
+}
+}
+
+}
+
+}
+
+}
+
+});
+
+}
+</script>
+
+</body>
+</html>
